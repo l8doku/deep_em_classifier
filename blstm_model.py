@@ -691,11 +691,11 @@ def run(args):
         # This creates files that are dependent of the features that are preserved and whether @LOAD_CLEAN_DATA is set.
         if not args.final_run:
             pickle.dump({'data_X': data_X, 'data_Y': data_Y, 'data_Y_one_hot': data_Y_one_hot},
-                        open(raw_data_set_fname, 'w'))
+                        open(raw_data_set_fname, 'wb'))
         else:
             pickle.dump({'data_X': data_X, 'data_Y': data_Y, 'data_Y_one_hot': data_Y_one_hot,
                          'source_fnames': source_fnames, 'source_objs': source_objs},
-                        open(raw_data_set_fname, 'w'))
+                        open(raw_data_set_fname, 'wb'))
         print('Written to', raw_data_set_fname)
     else:
         # If the raw file already exists, just load it
