@@ -202,8 +202,9 @@ def create_model(num_classes, batch_size, train_data_shape, dropout_rate=0.3,
                                     kernel_initializer=KI.RandomNormal(),
                                     bias_initializer=KI.Ones())))
 
+    rmsprop = keras.optimizers.RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=0.0)
     model.compile(loss='categorical_crossentropy',
-                  optimizer='rmsprop', metrics=['accuracy',
+                  optimizer=rmsprop, metrics=['accuracy',
                                                 f1_SP,
                                                 f1_FIX,
                                                 f1_SACC])
