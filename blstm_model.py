@@ -825,7 +825,7 @@ def run(args):
                                      num_blstm_layers=args.num_blstm, blstm_unit_counts=args.blstm_units,
                                      unroll_blstm=False,
                                      no_bidirectional=args.no_bidirectional,
-                                     learning_rate=args.learning_rate)
+                                     learning_rate=args.lr)
         else:
             model = keras.models.load_model(model_fname, custom_objects={'f1_SP': f1_SP,
                                                                          'f1_SACC': f1_SACC,
