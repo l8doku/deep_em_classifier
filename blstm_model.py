@@ -98,7 +98,8 @@ def create_model(num_classes, batch_size, train_data_shape, dropout_rate=0.3,
                  num_blstm_layers=1, blstm_unit_counts=(16,),
                  unroll_blstm=False,
                  stateful=False,
-                 no_bidirectional=True):
+                 no_bidirectional=True,
+                 learning_rate=0.001):
     """
     Create a 1D CNN-BLSTM model that contains 3 blocks of layers: Conv1D block, Dense block, and BLSTM block.
     Each of these is configurable via the parameters of this function; only the convolutional block cannot be entirely
@@ -202,7 +203,7 @@ def create_model(num_classes, batch_size, train_data_shape, dropout_rate=0.3,
                                     kernel_initializer=KI.RandomNormal(),
                                     bias_initializer=KI.Ones())))
 
-    rmsprop = keras.optimizers.RMSprop(lr=0.005, rho=0.9, epsilon=None, decay=0.0)
+    rmsprop = keras.optimizers.RMSprop(lr=learning_rate, rho=0.9, epsilon=None, decay=0.0)
     model.compile(loss='categorical_crossentropy',
                   optimizer=rmsprop, metrics=['accuracy',
                                                 f1_SP,
@@ -823,7 +824,8 @@ def run(args):
                                      num_dense_layers=args.num_dense, dense_units_count=args.dense_units,
                                      num_blstm_layers=args.num_blstm, blstm_unit_counts=args.blstm_units,
                                      unroll_blstm=False,
-                                     no_bidirectional=args.no_bidirectional)
+                                     no_bidirectional=args.no_bidirectional,
+                                     learning_rate=args.learning_rate)
         else:
             model = keras.models.load_model(model_fname, custom_objects={'f1_SP': f1_SP,
                                                                          'f1_SACC': f1_SACC,
@@ -1089,6 +1091,9 @@ def parse_args(dry_run=False):
                              'http://michaeldorr.de/smoothpursuit/sp_tool.zip as a stand-alone package, or as '
                              'part of the deep_eye_movement_classification.zip archive via '
                              'http://michaeldorr.de/smoothpursuit.')
+
+    parser.add_argument('--lr', default=0.001, type=float,
+                        help='Learning rate.')
 
     if dry_run:
         return parser
