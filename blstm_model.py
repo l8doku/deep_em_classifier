@@ -99,6 +99,7 @@ def create_model(num_classes, batch_size, train_data_shape, dropout_rate=0.3,
                  unroll_blstm=False,
                  stateful=False,
                  no_bidirectional=True,
+                 use_transformer=False,
                  learning_rate=0.001):
     """
     Create a 1D CNN-BLSTM model that contains 3 blocks of layers: Conv1D block, Dense block, and BLSTM block.
@@ -189,19 +190,66 @@ def create_model(num_classes, batch_size, train_data_shape, dropout_rate=0.3,
                                         kernel_initializer=KI.RandomNormal(),
                                         bias_initializer=KI.Ones())))
 
-    for blstm_layer_id in range(num_blstm_layers):
-        if not no_bidirectional:
-            model.add(Bidirectional(LSTM(blstm_unit_counts[blstm_layer_id],
-                                         return_sequences=True, stateful=stateful,
-                                         unroll=unroll_blstm)))
-        else:
-            model.add(LSTM(blstm_unit_counts[blstm_layer_id],
-                           return_sequences=True, stateful=stateful,
-                           unroll=unroll_blstm))
 
-    model.add(TimeDistributed(Dense(num_classes, activation='softmax',
+    if not use_transformer:
+
+        for blstm_layer_id in range(num_blstm_layers):
+            if not no_bidirectional:
+                model.add(Bidirectional(LSTM(blstm_unit_counts[blstm_layer_id],
+                                            return_sequences=True, stateful=stateful,
+                                            unroll=unroll_blstm)))
+            else:
+                model.add(LSTM(blstm_unit_counts[blstm_layer_id],
+                            return_sequences=True, stateful=stateful,
+                            unroll=unroll_blstm))
+        
+        model.add(TimeDistributed(Dense(num_classes, activation='softmax',
                                     kernel_initializer=KI.RandomNormal(),
                                     bias_initializer=KI.Ones())))
+
+    else:
+        # vision_model.add(Flatten())
+
+        # # Now let's get a tensor with the output of our vision model:
+        sequence_input = Input(batch_shape=(batch_size, train_data_shape[1], train_data_shape[2]))
+        encoded_sequence = model(sequence_input)
+
+
+        transformer_input = encoded_sequence
+        transformer_depth = 5
+
+        transformer_block = TransformerBlock(
+            name='transformer',
+            num_heads=8,
+            residual_dropout=0.1,
+            attention_dropout=0.1,
+            use_masking=False)
+        add_coordinate_embedding = TransformerCoordinateEmbedding(
+            transformer_depth,
+            name='coordinate_embedding')
+
+        transformer_output = transformer_input  # shape: (batch_size, sequence_length, input_size)
+        for step in range(transformer_depth):
+            transformer_output = transformer_block(
+                add_coordinate_embedding(transformer_output, step=step))
+
+        output = TimeDistributed(Dense(num_classes, activation='softmax',
+                                    kernel_initializer=KI.RandomNormal(),
+                                    bias_initializer=KI.Ones()))(transformer_output)
+
+        # output = Dense(1000, activation='softmax')(merged)
+
+        # This is our final model:
+        model = Model(inputs=sequence_input, outputs=output)
+
+
+
+
+
+
+    # model.add(TimeDistributed(Dense(num_classes, activation='softmax',
+    #                                 kernel_initializer=KI.RandomNormal(),
+    #                                 bias_initializer=KI.Ones())))
 
     rmsprop = keras.optimizers.RMSprop(lr=learning_rate, rho=0.9, epsilon=None, decay=0.0)
     model.compile(loss='categorical_crossentropy',
@@ -825,6 +873,7 @@ def run(args):
                                      num_blstm_layers=args.num_blstm, blstm_unit_counts=args.blstm_units,
                                      unroll_blstm=False,
                                      no_bidirectional=args.no_bidirectional,
+                                     use_transformer=args.use_tranformer,
                                      learning_rate=args.lr)
         else:
             model = keras.models.load_model(model_fname, custom_objects={'f1_SP': f1_SP,
@@ -1081,6 +1130,9 @@ def parse_args(dry_run=False):
                              'Should pass as, for example, "--blstm-units 16 16 16".')
     parser.add_argument('--no-bidirectional', '--no-bi', action='store_true',
                         help='Use conventional LSTMs, no bi-directional wrappers.')
+
+    parser.add_argument('--use_transformer', '--tformer', action='store_true',
+                        help='Use Transformer instead of an LSTM.')
 
     parser.add_argument('--dry-run', action='store_true',
                         help='Do not train or test anything, just create a model and show the architecture and '
