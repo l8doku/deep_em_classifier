@@ -752,7 +752,7 @@ def run(args):
     else:
         # If the raw file already exists, just load it
         print('Loading from', raw_data_set_fname)
-        loaded_data = pickle.load(open(raw_data_set_fname))
+        loaded_data = pickle.load(open(raw_data_set_fname, 'rb'))
         data_X, data_Y, data_Y_one_hot = loaded_data['data_X'], loaded_data['data_Y'], loaded_data['data_Y_one_hot']
         if args.final_run:
             source_fnames, source_objs = loaded_data['source_fnames'], loaded_data['source_objs']
