@@ -14,7 +14,10 @@ from keras.callbacks import History, TensorBoard, Callback
 import keras.initializers as KI
 from keras.layers import BatchNormalization
 from keras.engine.input_layer import Input
-import keras_transformer
+
+from keras_transformer import transformer
+from keras_transformer import position
+from keras.models import Model
 
 from keras import backend as K
 import numpy as np
@@ -220,13 +223,13 @@ def create_model(num_classes, batch_size, train_data_shape, dropout_rate=0.3,
         transformer_input = encoded_sequence
         transformer_depth = 5
 
-        transformer_block = keras_transformer.transformer.TransformerBlock(
+        transformer_block = transformer.TransformerBlock(
             name='transformer',
             num_heads=8,
             residual_dropout=0.1,
             attention_dropout=0.1,
             use_masking=False)
-        add_coordinate_embedding = keras_transformer.position.TransformerCoordinateEmbedding(
+        add_coordinate_embedding = position.TransformerCoordinateEmbedding(
             transformer_depth,
             name='coordinate_embedding')
 
