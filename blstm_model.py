@@ -438,7 +438,7 @@ def evaluate_test(model, X, y=None,
                    pad_width=((0, target_len - res_X.shape[0]), (0, 0), (0, 0)),
                    mode='constant')
     # take only the needed predictions
-    res_proba = model.predict_proba(res_X, batch_size=batch_size)[:original_len]
+    res_proba = model.predict(res_X, batch_size=batch_size)[:original_len]
 
     results = {}
 
