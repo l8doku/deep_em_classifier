@@ -218,7 +218,7 @@ def create_model(num_classes, batch_size, train_data_shape, dropout_rate=0.3,
 
 
         transformer_input = encoded_sequence
-        transformer_depth = 5
+        transformer_depth = 1
 
         transformer_block = keras_transformer.transformer.TransformerBlock(
             name='transformer',
