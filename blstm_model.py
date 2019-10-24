@@ -531,11 +531,13 @@ def get_full_model_descriptor(args):
     :param args:
     :return:
     """
-    return '{mdl}_{feat}_WINDOW_{win}{overlap}/'.format(mdl=get_architecture_descriptor(args),
+    return '{mdl}_{feat}_WINDOW_{win}{overlap}_batch_{batch}{transformer}/'.format(mdl=get_architecture_descriptor(args),
                                                         feat=get_feature_descriptor(args),
                                                         win=args.window_size,
                                                         overlap='_overlap_{}'.format(args.overlap)
-                                                                if args.overlap > 0 else '')
+                                                                if args.overlap > 0 else '',
+                                                        batch=args.batch_size,
+                                                        transformer='T' if args.use_transformer else '')
 
 
 def get_arff_attributes_to_keep(args):
