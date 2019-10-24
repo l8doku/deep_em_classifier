@@ -105,6 +105,7 @@ def create_model(num_classes, batch_size, train_data_shape, dropout_rate=0.3,
                  stateful=False,
                  no_bidirectional=True,
                  use_transformer=False,
+                 tf_depth=1,
                  learning_rate=0.001):
     """
     Create a 1D CNN-BLSTM model that contains 3 blocks of layers: Conv1D block, Dense block, and BLSTM block.
@@ -221,7 +222,7 @@ def create_model(num_classes, batch_size, train_data_shape, dropout_rate=0.3,
 
 
         transformer_input = encoded_sequence
-        transformer_depth = 1
+        transformer_depth = tf_depth
 
         transformer_block = transformer.TransformerBlock(
             name='transformer',
@@ -537,7 +538,7 @@ def get_full_model_descriptor(args):
                                                         overlap='_overlap_{}'.format(args.overlap)
                                                                 if args.overlap > 0 else '',
                                                         batch=args.batch_size,
-                                                        transformer='T' if args.use_transformer else '')
+                                                        transformer='T{}'.format(args.tf_depth) if args.use_transformer else '')
 
 
 def get_arff_attributes_to_keep(args):
@@ -881,6 +882,7 @@ def run(args):
                                      unroll_blstm=False,
                                      no_bidirectional=args.no_bidirectional,
                                      use_transformer=args.use_transformer,
+                                     tf_depth=args.tf_depth,
                                      learning_rate=args.lr)
         else:
             model = keras.models.load_model(model_fname, custom_objects={'f1_SP': f1_SP,
@@ -1140,6 +1142,9 @@ def parse_args(dry_run=False):
 
     parser.add_argument('--use_transformer', '--tformer', action='store_true',
                         help='Use Transformer instead of an LSTM.')
+
+    parser.add_argument('--tf_depth', default=1, type=int,
+                        help='Transformer depth.')
 
     parser.add_argument('--dry-run', action='store_true',
                         help='Do not train or test anything, just create a model and show the architecture and '
